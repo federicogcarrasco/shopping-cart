@@ -1,8 +1,8 @@
 INSERT INTO users (username, password, role) VALUES
-('admin', '$2a$10$7QwWMODpSXBCLpHLJiUMUOFkdvuQXjCQF0bFdmhVALuDhiULHPRQe', 'ADMIN'),
-('john', '$2a$10$7QwWMODpSXBCLpHLJiUMUOFkdvuQXjCQF0bFdmhVALuDhiULHPRQe', 'USER'),
-('jane', '$2a$10$7QwWMODpSXBCLpHLJiUMUOFkdvuQXjCQF0bFdmhVALuDhiULHPRQe', 'USER');
--- La password de los 3 usuarios es password123 (ya hasheada por ByCrypt)
+('admin', '$2a$10$juCZjBXFwir9F95ijbmUhu9ZWMa.64bt/9t7Mfcyq4ilDg1cliSum', 'ADMIN'),
+('john', '$2a$10$juCZjBXFwir9F95ijbmUhu9ZWMa.64bt/9t7Mfcyq4ilDg1cliSum', 'USER'),
+('jane', '$2a$10$juCZjBXFwir9F95ijbmUhu9ZWMa.64bt/9t7Mfcyq4ilDg1cliSum', 'USER');
+-- La password de los 3 usuarios es password (ya hasheada por ByCrypt)
 
 INSERT INTO product_categories (name, discount) VALUES
 ('Electronics', 0.10),
