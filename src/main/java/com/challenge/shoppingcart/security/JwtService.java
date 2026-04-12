@@ -1,5 +1,6 @@
 package com.challenge.shoppingcart.security;
 
+import com.challenge.shoppingcart.entities.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -25,9 +26,10 @@ public class JwtService {
         return Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
     }
 
-    public String generateToken(UserDetails userDetails) {
+    public String generateToken(User user) {
         return Jwts.builder()
-                .subject(userDetails.getUsername())
+                .subject(user.getUsername())
+                .claim("userId", user.getId())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(getSigningKey())
@@ -36,6 +38,10 @@ public class JwtService {
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
+    }
+
+    public Long extractUserId(String token) {
+        return extractClaim(token, claims -> claims.get("userId", Long.class));
     }
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
