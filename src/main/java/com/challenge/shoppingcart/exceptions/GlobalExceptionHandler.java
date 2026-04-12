@@ -13,6 +13,12 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(UnauthorizedOperationException.class)
+    public ResponseEntity<ApiError> handleUnauthorized(UnauthorizedOperationException ex) {
+        log.warn("Unauthorized operation: {}", ex.getMessage());
+        return buildError(HttpStatus.FORBIDDEN, ex.getMessage());
+    }
+
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiError> handleNotFound(ResourceNotFoundException ex) {
         log.warn("Resource not found: {}", ex.getMessage());
