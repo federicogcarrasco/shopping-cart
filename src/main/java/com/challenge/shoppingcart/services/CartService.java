@@ -34,6 +34,7 @@ public class CartService {
     private final CartItemRepository cartItemRepository;
     private final ProductRepository productRepository;
     private final JwtService jwtService;
+    private final OrderProcessingService orderProcessingService;
 
     public CartDto createCart(CreateCartRequest request, String authHeader) {
         Long tokenUserId = jwtService.extractUserId(authHeader.substring(7));
@@ -192,5 +193,24 @@ public class CartService {
                                 .build())
                         .build())
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public String processCart(Long cartId) {
+        Cart cart = cartRepository.findByIdWithLock(cartId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Carrito no encontrado con id: " + cartId));
+
+        if (cart.getStatus() != CartStatus.ACTIVE) {
+            throw new InvalidOperationException(
+                    "Solo se pueden procesar carritos con estado ACTIVE");
+        }
+
+        cart.setStatus(CartStatus.PROCESSING);
+        cartRepository.save(cart);
+
+        orderProcessingService.process(cartId);
+
+        return "Estamos procesando su orden";
     }
 }

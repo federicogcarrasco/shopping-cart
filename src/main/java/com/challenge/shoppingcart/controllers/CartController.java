@@ -55,4 +55,9 @@ public class CartController {
                                                           @RequestHeader("Authorization") String authHeader) {
         return ResponseEntity.ok(cartService.getCartItems(cartId, authHeader));
     }
+
+    @PostMapping("/{cartId}/process")
+    public ResponseEntity<String> processCart(@PathVariable Long cartId) {
+        return ResponseEntity.accepted().body(cartService.processCart(cartId));
+    }
 }
