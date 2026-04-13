@@ -49,4 +49,10 @@ public class CartController {
         cartService.removeItem(cartId, request);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/{cartId}/items")
+    public ResponseEntity<List<CartItemDto>> getCartItems(@PathVariable Long cartId,
+                                                          @RequestHeader("Authorization") String authHeader) {
+        return ResponseEntity.ok(cartService.getCartItems(cartId, authHeader));
+    }
 }

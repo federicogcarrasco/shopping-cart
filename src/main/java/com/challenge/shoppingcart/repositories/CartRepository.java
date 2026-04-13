@@ -16,6 +16,8 @@ import java.util.Optional;
 public interface CartRepository extends JpaRepository<Cart, Long> {
     List<Cart> findByUser(User user);
 
+    Optional<Cart> findById(@Param("id") Long id);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT c FROM Cart c WHERE c.id = :id")
     Optional<Cart> findByIdWithLock(@Param("id") Long id);

@@ -125,10 +125,16 @@ public class CartService {
         log.info("Producto {} agregado al carrito {}", product.getId(), cartId);
 
         return CartItemDto.builder()
-                .id(saved.getId())
-                .productId(product.getId())
-                .productName(product.getName())
-                .price(product.getPrice())
+                .productDto(
+                        ProductDto.builder()
+                                .name(product.getName())
+                                .price(product.getPrice())
+                                .category(ProductCategoryDto
+                                        .builder()
+                                        .name(product.getCategory().getName())
+                                        .discount(product.getCategory().getDiscount())
+                                        .build())
+                                .build())
                 .quantity(saved.getQuantity())
                 .build();
     }
@@ -150,5 +156,41 @@ public class CartService {
 
         cartItemRepository.delete(item);
         log.info("Producto {} eliminado del carrito {}", request.getProductId(), cartId);
+    }
+
+    public List<CartItemDto> getCartItems(Long cartId, String authHeader) {
+        String token = authHeader.substring(7);
+        Long tokenUserId = jwtService.extractUserId(token);
+        String tokenRole = jwtService.extractRole(token);
+
+        Cart cart = cartRepository.findById(cartId)
+                        .orElseThrow(() -> new ResourceNotFoundException(
+                            "Carrito no encontrado con id: " + cartId));
+
+        if (!tokenRole.equals(UserRole.ADMIN.name()) && !tokenUserId.equals(cart.getUser().getId())) {
+            throw new UnauthorizedOperationException(
+                    "No podés ver los carritos de otro usuario");
+        }
+
+        List<CartItem> items = cartItemRepository.findByCartId(cartId);
+
+        if (items.isEmpty()) {
+            throw new ResourceNotFoundException(
+                    "No se encontraron productos en el carrito con id: " + cartId);
+        }
+
+        return items.stream()
+                .map(item -> CartItemDto.builder()
+                        .quantity(item.getQuantity())
+                        .productDto(ProductDto.builder()
+                                .name(item.getProduct().getName())
+                                .price(item.getProduct().getPrice())
+                                .category(ProductCategoryDto.builder()
+                                        .name(item.getProduct().getCategory().getName())
+                                        .discount(item.getProduct().getCategory().getDiscount())
+                                        .build())
+                                .build())
+                        .build())
+                .collect(Collectors.toList());
     }
 }
