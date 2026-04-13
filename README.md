@@ -91,3 +91,50 @@ The database is pre-loaded with the following data:
 
 Application logs are stored in the `logs/` directory, which is excluded from version control.
 Each log file rotates daily and when it reaches 10MB, keeping up to 30 days of history.
+
+## Metrics
+
+The API exposes usage metrics via Spring Boot Actuator and Micrometer.
+
+### Available endpoints
+
+| Endpoint                        | Description                              |
+|---------------------------------|------------------------------------------|
+| `/actuator/health`              | Application health status                |
+| `/actuator/metrics`             | List of all available metrics            |
+| `/actuator/metrics/{metric}`    | Detail of a specific metric              |
+| `/actuator/prometheus`          | All metrics in Prometheus format         |
+
+### Querying metrics directly
+
+You can query any metric in JSON format without any external tool:
+
+```
+GET http://localhost:8080/actuator/metrics/http.server.requests
+```
+
+Filter by tag (e.g. only POST requests to `/api/carts`):
+```
+GET http://localhost:8080/actuator/metrics/http.server.requests?tag=uri:/api/carts&tag=method:POST
+```
+
+### HTTP request metrics (auto-generated per endpoint)
+
+| Metric | Description |
+|--------|-------------|
+| `http.server.requests` — `count` | Total number of calls |
+| `http.server.requests` — `status=2xx` | Successful calls |
+| `http.server.requests` — `status=4xx/5xx` | Failed calls |
+| `http.server.requests` — `p50/p95/p99` | Response time percentiles |
+
+### Custom business metrics
+
+| Metric | Description |
+|--------|-------------|
+| `carts.created` | Number of carts created |
+| `carts.items.added` | Number of items added to carts |
+| `carts.items.removed` | Number of items removed from carts |
+| `carts.orders.processing` | Number of orders sent to async processing |
+| `carts.orders.processed` | Number of orders successfully processed |
+| `carts.orders.failed` | Number of orders that failed during processing |
+| `carts.orders.processing.time` | Time taken to process each order |

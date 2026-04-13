@@ -10,7 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import java.util.List;
 
 @Slf4j
@@ -20,10 +21,12 @@ public class OrderProcessingService {
 
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
+    private final MeterRegistry meterRegistry;
 
     @Async
     @Transactional
     public void process(Long cartId) {
+        Timer.Sample sample = Timer.start(meterRegistry);
         try {
             Cart cart = cartRepository.findById(cartId)
                     .orElseThrow(() -> new RuntimeException(
@@ -68,9 +71,13 @@ public class OrderProcessingService {
 
             cart.setStatus(CartStatus.PROCESSED);
             cartRepository.save(cart);
+            meterRegistry.counter("carts.orders.processed").increment();
 
         } catch (Exception e) {
             log.error("Error procesando carrito {}: {}", cartId, e.getMessage(), e);
+            meterRegistry.counter("carts.orders.failed").increment();
+        } finally {
+            sample.stop(meterRegistry.timer("carts.orders.processing.time"));
         }
     }
 }

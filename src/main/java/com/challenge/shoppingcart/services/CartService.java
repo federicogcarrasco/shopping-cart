@@ -23,6 +23,7 @@ import com.challenge.shoppingcart.exceptions.InvalidOperationException;
 import com.challenge.shoppingcart.repositories.CartItemRepository;
 import com.challenge.shoppingcart.repositories.ProductRepository;
 import org.springframework.transaction.annotation.Transactional;
+import io.micrometer.core.instrument.MeterRegistry;
 
 @Slf4j
 @Service
@@ -35,6 +36,7 @@ public class CartService {
     private final ProductRepository productRepository;
     private final JwtService jwtService;
     private final OrderProcessingService orderProcessingService;
+    private final MeterRegistry meterRegistry;
 
     public CartDto createCart(CreateCartRequest request, String authHeader) {
         Long tokenUserId = jwtService.extractUserId(authHeader.substring(7));
@@ -55,6 +57,7 @@ public class CartService {
 
         Cart saved = cartRepository.save(cart);
         log.info("Carrito creado con id {} para usuario {}", saved.getId(), user.getUsername());
+        meterRegistry.counter("carts.created").increment();
 
         return CartDto.builder()
                 .id(saved.getId())
@@ -124,6 +127,7 @@ public class CartService {
 
         CartItem saved = cartItemRepository.save(item);
         log.info("Producto {} agregado al carrito {}", product.getId(), cartId);
+        meterRegistry.counter("carts.items.added").increment();
 
         return CartItemDto.builder()
                 .productDto(
@@ -157,6 +161,7 @@ public class CartService {
 
         cartItemRepository.delete(item);
         log.info("Producto {} eliminado del carrito {}", request.getProductId(), cartId);
+        meterRegistry.counter("carts.items.removed").increment();
     }
 
     public List<CartItemDto> getCartItems(Long cartId, String authHeader) {
@@ -208,6 +213,7 @@ public class CartService {
 
         cart.setStatus(CartStatus.PROCESSING);
         cartRepository.save(cart);
+        meterRegistry.counter("carts.orders.processing").increment();
 
         orderProcessingService.process(cartId);
 
