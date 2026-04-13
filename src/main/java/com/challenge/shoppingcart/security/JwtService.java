@@ -2,6 +2,7 @@ package com.challenge.shoppingcart.security;
 
 import com.challenge.shoppingcart.entities.User;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -50,8 +51,12 @@ public class JwtService {
     }
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
-        return extractUsername(token).equals(userDetails.getUsername())
-                && !isTokenExpired(token);
+        try {
+            return extractUsername(token).equals(userDetails.getUsername())
+                    && !isTokenExpired(token);
+        } catch (ExpiredJwtException e) {
+            return false;
+        }
     }
 
     private boolean isTokenExpired(String token) {

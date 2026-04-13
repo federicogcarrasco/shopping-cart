@@ -1,8 +1,7 @@
 package com.challenge.shoppingcart.entities;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,6 +9,9 @@ import java.util.List;
 @Entity
 @Table(name = "product_categories")
 @Getter @Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class ProductCategory {
 
     @Id
