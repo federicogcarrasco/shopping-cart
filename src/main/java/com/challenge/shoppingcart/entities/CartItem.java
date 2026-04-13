@@ -1,12 +1,14 @@
 package com.challenge.shoppingcart.entities;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
 @Table(name = "cart_items")
 @Getter @Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class CartItem {
 
     @Id

@@ -15,7 +15,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import com.challenge.shoppingcart.entities.UserRole;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import com.challenge.shoppingcart.dtos.AddItemRequest;
+import com.challenge.shoppingcart.dtos.CartItemDto;
+import com.challenge.shoppingcart.entities.CartItem;
+import com.challenge.shoppingcart.entities.Product;
+import com.challenge.shoppingcart.exceptions.InvalidOperationException;
+import com.challenge.shoppingcart.repositories.CartItemRepository;
+import com.challenge.shoppingcart.repositories.ProductRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -24,6 +33,8 @@ public class CartService {
 
     private final CartRepository cartRepository;
     private final UserRepository userRepository;
+    private final CartItemRepository cartItemRepository;
+    private final ProductRepository productRepository;
     private final JwtService jwtService;
 
     public CartDto createCart(CreateCartRequest request, String authHeader) {
@@ -81,5 +92,46 @@ public class CartService {
                         .status(cart.getStatus())
                         .build())
                     .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public CartItemDto addItem(Long cartId, AddItemRequest request) {
+        Cart cart = cartRepository.findByIdWithLock(cartId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Carrito no encontrado con id: " + cartId));
+
+        if (cart.getStatus() != CartStatus.ACTIVE) {
+            throw new InvalidOperationException(
+                    "Solo se pueden agregar items a carritos con estado ACTIVE");
+        }
+
+        Product product = productRepository.findById(request.getProductId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Producto no encontrado con id: " + request.getProductId()));
+
+        Optional<CartItem> optionalItem = cartItemRepository.findByCartIdAndProductId(cartId, product.getId());
+
+        CartItem item;
+        if (optionalItem.isPresent()) {
+            item = optionalItem.get();
+            item.setQuantity(item.getQuantity() + request.getQuantity());
+        } else {
+            item = CartItem.builder()
+                    .cart(cart)
+                    .product(product)
+                    .quantity(request.getQuantity())
+                    .build();
+        }
+
+        CartItem saved = cartItemRepository.save(item);
+        log.info("Producto {} agregado al carrito {}", product.getId(), cartId);
+
+        return CartItemDto.builder()
+                .id(saved.getId())
+                .productId(product.getId())
+                .productName(product.getName())
+                .price(product.getPrice())
+                .quantity(saved.getQuantity())
+                .build();
     }
 }
