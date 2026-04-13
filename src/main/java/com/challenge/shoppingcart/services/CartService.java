@@ -1,7 +1,6 @@
 package com.challenge.shoppingcart.services;
 
-import com.challenge.shoppingcart.dtos.CartDto;
-import com.challenge.shoppingcart.dtos.CreateCartRequest;
+import com.challenge.shoppingcart.dtos.*;
 import com.challenge.shoppingcart.entities.Cart;
 import com.challenge.shoppingcart.entities.CartStatus;
 import com.challenge.shoppingcart.entities.User;
@@ -17,8 +16,7 @@ import com.challenge.shoppingcart.entities.UserRole;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import com.challenge.shoppingcart.dtos.AddItemRequest;
-import com.challenge.shoppingcart.dtos.CartItemDto;
+
 import com.challenge.shoppingcart.entities.CartItem;
 import com.challenge.shoppingcart.entities.Product;
 import com.challenge.shoppingcart.exceptions.InvalidOperationException;
@@ -133,5 +131,24 @@ public class CartService {
                 .price(product.getPrice())
                 .quantity(saved.getQuantity())
                 .build();
+    }
+
+    @Transactional
+    public void removeItem(Long cartId, RemoveItemRequest request) {
+        Cart cart = cartRepository.findByIdWithLock(cartId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Carrito no encontrado con id: " + cartId));
+
+        if (cart.getStatus() != CartStatus.ACTIVE) {
+            throw new InvalidOperationException(
+                    "Solo se pueden eliminar items de carritos con estado ACTIVE");
+        }
+
+        CartItem item = cartItemRepository.findByCartIdAndProductId(cartId, request.getProductId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "El producto con id " + request.getProductId() + " no está en el carrito"));
+
+        cartItemRepository.delete(item);
+        log.info("Producto {} eliminado del carrito {}", request.getProductId(), cartId);
     }
 }
