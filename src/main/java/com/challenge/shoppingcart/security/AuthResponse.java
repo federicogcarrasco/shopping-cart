@@ -7,5 +7,6 @@ import lombok.Setter;
 @Builder
 @Getter @Setter
 public class AuthResponse {
+    private Long userId;
     private String token;
 }

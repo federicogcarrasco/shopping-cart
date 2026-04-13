@@ -34,6 +34,7 @@ public class AuthService {
         userRepository.save(user);
 
         return AuthResponse.builder()
+                .userId(user.getId())
                 .token(jwtService.generateToken(user))
                 .build();
     }
@@ -50,6 +51,7 @@ public class AuthService {
                 .orElseThrow();
 
         return AuthResponse.builder()
+                .userId(user.getId())
                 .token(jwtService.generateToken(user))
                 .build();
     }
