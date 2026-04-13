@@ -21,12 +21,12 @@
 
 ```bash
 git clone https://github.com/federicogcarrasco/shopping-cart.git
-cd shoppingcart
 ```
 
 ### 2 — Run the application
 
 ```bash
+cd shopping-cart
 mvn spring-boot:run
 ```
 
